@@ -1,0 +1,117 @@
+{
+  "CFx": {
+    "Model": "Default",
+    "Overlays": [
+      "101000F"
+    ]
+  },
+  "Logger": {
+    "LogLevel": "INFO",
+    "Device": "File",
+    "Directory": "/var/log/edge-vpnio/",
+    "CtrlLogFileName": "ctrl.log",
+    "TincanLogFileName": "tincan_log",
+    "MaxFileSize": 10000000,
+    "MaxArchives": 1
+  },
+  "Signal": {
+    "Enabled": true,
+    "Overlays": {
+      "101000F": {
+        "HostAddress": "SERVER_IP",
+        "Port": "5222",
+        "Username": "XMPP_USER@openfire.local",
+        "Password": "XMPP_PASSWORD",
+        "AuthenticationMethod": "PASSWORD"
+      }
+    }
+  },
+  "Topology": {
+    "PeerDiscoveryCoalesce": 1,
+    "Overlays": {
+      "101000F": {
+        "Name": "SymphonyRing",
+        "Description": "Scalable Symphony Ring Overlay for Bounded Flooding.",
+        "MaxSuccessors": 2,
+        "MaxOnDemandEdges": 1,
+        "MaxConcurrentEdgeSetup": 5,
+        "Role": "Switch"
+      }
+    }
+  },
+  "LinkManager": {
+    "Dependencies": [
+      "Logger",
+      "TincanInterface",
+      "Signal"
+    ],
+    "Stun": [
+      "stun.l.google.com:19302",
+      "stun1.l.google.com:19302"
+    ],
+    "Turn": [{
+      "Address": "SERVER_IP:3478",
+      "User": "TURN_USER",
+      "Password": "TURN_PASSWORD"
+     }],
+    "Overlays": {
+      "101000F": {
+        "Type": "TUNNEL",
+        "TapName": "tnl-"
+      }
+    }
+  },
+  "UsageReport": {
+    "Enabled": true,
+    "TimerInterval": 3600,
+    "WebService": "https://qdscz6pg37.execute-api.us-west-2.amazonaws.com/default/EvioUsageReport"
+  },
+  "BridgeController": {
+    "Dependencies": [
+      "Logger",
+      "LinkManager"
+    ],
+    "BoundedFlood": {
+      "OverlayId": "101000F",
+      "LogDir": "/var/log/edge-vpnio/",
+      "LogFilename": "bf.log",
+      "LogLevel": "INFO",
+      "BridgeName": "edgbr",
+      "DemandThreshold": "100M",
+      "FlowIdleTimeout": 60,
+      "FlowHardTimeout": 60,
+      "MulticastBroadcastInterval": 60,
+      "MaxBytes": 10000000,
+      "BackupCount": 0,
+      "ProxyListenAddress": "",
+      "ProxyListenPort": 5802,
+      "MonitorInterval": 60,
+      "MaxOnDemandEdges": 0
+    },
+    "Overlays": {
+      "101000F": {
+        "NetDevice": {
+          "AutoDelete": true,
+          "Type": "OVS",
+          "SwitchProtocol": "BF",
+          "NamePrefix": "edgbr",
+          "MTU": 1410,
+          "AppBridge": {
+            "AutoDelete": true,
+            "Type": "OVS",
+            "NamePrefix": "brl",
+            "IP4": "NODE_IP",
+            "PrefixLen": 24,
+            "MTU": 1410,
+            "NetworkAddress": "NODE_BASE_IP/24"
+          }
+        },
+        "SDNController": {
+          "ConnectionType": "tcp",
+          "HostName": "127.0.0.1",
+          "Port": "6633"
+        }
+      }
+    }
+  }
+}
