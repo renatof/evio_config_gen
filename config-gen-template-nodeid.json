@@ -3,7 +3,8 @@
     "Model": "Default",
     "Overlays": [
       "OVERLAY_ID"
-    ]
+    ],
+    "NodeId": "a100XYZffffffffffffffffffffffXYZ"
   },
   "Logger": {
     "LogLevel": "INFO",
