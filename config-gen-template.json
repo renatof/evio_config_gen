@@ -12,12 +12,12 @@
     "CtrlLogFileName": "ctrl.log",
     "TincanLogFileName": "tincan_log",
     "MaxFileSize": 10000000,
-    "MaxArchives": 1
+    "MaxArchives": 2
   },
   "Signal": {
     "Enabled": true,
     "Overlays": {
-      "101000F": {
+      "OVERLAY_ID": {
         "HostAddress": "SERVER_NAME",
         "Port": "5222",
         "Username": "XMPP_USER@SERVER_NAME",
@@ -29,7 +29,7 @@
   "Topology": {
     "PeerDiscoveryCoalesce": 1,
     "Overlays": {
-      "101000F": {
+      "OVERLAY_ID": {
         "Name": "SymphonyRing",
         "Description": "Scalable Symphony Ring Overlay for Bounded Flooding.",
         "MaxSuccessors": 2,
@@ -55,7 +55,7 @@
       "Password": "TURN_PASSWORD"
      }],
     "Overlays": {
-      "101000F": {
+      "OVERLAY_ID": {
         "Type": "TUNNEL",
         "TapName": "tnl-"
       }
@@ -72,7 +72,7 @@
       "LinkManager"
     ],
     "BoundedFlood": {
-      "OverlayId": "101000F",
+      "OverlayId": "OVERLAY_ID",
       "LogDir": "/var/log/edge-vpnio/",
       "LogFilename": "bf.log",
       "LogLevel": "INFO",
@@ -89,7 +89,7 @@
       "MaxOnDemandEdges": 0
     },
     "Overlays": {
-      "101000F": {
+      "OVERLAY_ID": {
         "NetDevice": {
           "AutoDelete": true,
           "Type": "OVS",
