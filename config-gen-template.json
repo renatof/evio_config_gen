@@ -8,7 +8,7 @@
   "Logger": {
     "LogLevel": "INFO",
     "Device": "File",
-    "Directory": "/var/log/edge-vpnio/",
+    "Directory": "/var/log/evio/",
     "CtrlLogFileName": "ctrl.log",
     "TincanLogFileName": "tincan_log",
     "MaxFileSize": 10000000,
@@ -18,9 +18,9 @@
     "Enabled": true,
     "Overlays": {
       "OVERLAY_ID": {
-        "HostAddress": "SERVER_NAME",
+        "HostAddress": "SERVER_ADDRESS",
         "Port": "5222",
-        "Username": "XMPP_USER@SERVER_NAME",
+        "Username": "XMPP_USER@XMPP_DOMAIN",
         "Password": "XMPP_PASSWORD",
         "AuthenticationMethod": "PASSWORD"
       }
@@ -50,7 +50,7 @@
       "stun1.l.google.com:19302"
     ],
     "Turn": [{
-      "Address": "SERVER_NAME:3478",
+      "Address": "SERVER_ADDRESS:3478",
       "User": "TURN_USER",
       "Password": "TURN_PASSWORD"
      }],
@@ -73,7 +73,7 @@
     ],
     "BoundedFlood": {
       "OverlayId": "OVERLAY_ID",
-      "LogDir": "/var/log/edge-vpnio/",
+      "LogDir": "/var/log/evio/",
       "LogFilename": "bf.log",
       "LogLevel": "INFO",
       "BridgeName": "edgbr",

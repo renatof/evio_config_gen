@@ -5,17 +5,22 @@ import string
 import re
 import shutil
 import time
+import argparse
 from datetime import datetime
 from tempfile import mkstemp
 
 # is this going to be a debugging testbed with fixed nodeIDs?
+# leave this as False, unless you want your nodes to have 
+# statically defined nodeIds to help debugging
 DEBUG_TESTBED = False
-# address of the server hosting the containers
-SERVER_NAME = 'trial.edgevpn.io'
-# Number of trial nodes
-NUM_NODES = 5
-# Number of xmpp/turn accounts
-NUM_ACCOUNTS = 1
+# public address of the server hosting the containers
+# this can be the IP address of your EC2 instance, or
+# a DNS domain name bound to it
+SERVER_ADDRESS = 'trial.edgevpn.io'
+# domain name of XMPP server
+# This can be the same as SERVER_ADDRESS (if you have a DNS entry mapped to your instance), 
+# or openfire.local (if you don't have DNS mapped and use an IP address)
+XMPP_DOMAIN = 'trial.edgevpn.io'
 # Password length
 RANDOM_STRING_LENGTH = 16
 # Name of MySQL user
@@ -52,7 +57,8 @@ OF_SQL_SCRIPT_POS = '_of.sh'
 TURNADMIN_TEMPLATE_OUT_POS = '_turnadmin.sh'
 
 # Pattern-matching in the json config file - these are substituted by sed
-SERVER_NAME_STRING = 'SERVER_NAME'
+SERVER_ADDRESS_STRING = 'SERVER_ADDRESS'
+XMPP_DOMAIN_STRING = 'XMPP_DOMAIN'
 XMPP_USER_STRING = 'XMPP_USER'
 XMPP_PASSWORD_STRING = 'XMPP_PASSWORD'
 TURN_USER_STRING = 'TURN_USER'
@@ -116,7 +122,7 @@ def sed(pattern, replace, source, dest=None, count=0):
 
 
 class ConfigGen():
-    def __init__(self, mysql_password, requestor_email, project_name, base_IP, overlay_id):
+    def __init__(self, mysql_password, requestor_email, project_name, base_IP, overlay_id, num_accounts, num_nodes):
         # MySQL password
         self.mysql_password = mysql_password
         # email of the person requesting trial
@@ -127,21 +133,23 @@ class ConfigGen():
         self.base_IP = base_IP + '.0'
         self.email = requestor_email
         # self.username is the username assigned to a given config. file, and may repeat
-        # self.username_unique does not repeat - one per unique NUM_ACCOUNTS
+        # self.username_unique does not repeat - one per unique num_accounts
         self.username = []
         self.username_unique = []
         self.password = []
         self.password_unique = []
         self.IP = []
         self.overlay_id = overlay_id
+        self.num_nodes = num_nodes
+        self.num_accounts = num_accounts
         pos = 0
-        for i in range(0,NUM_ACCOUNTS):
+        for i in range(0,self.num_accounts):
             userstr = project_name + "_node" + str(i+1)
             self.username_unique.insert(i, userstr)
             letters = string.ascii_lowercase
             passwordstr = ''.join(random.choice(letters) for k in range(RANDOM_STRING_LENGTH))
             self.password_unique.insert(i, passwordstr)
-            for j in range(0,(NUM_NODES//NUM_ACCOUNTS)):
+            for j in range(0,(self.num_nodes//self.num_accounts)):
                 self.username.insert(pos, userstr)
                 self.password.insert(pos, passwordstr)
                 ipstr = base_IP + "." + str(pos+1)
@@ -161,10 +169,10 @@ class ConfigGen():
     # Write Evio config-00x.json configuration files
     # builds on sed-like Python function
     def WriteJson(self):
-        for i in range(0,NUM_NODES):
-            print(XMPP_USER_STRING + " : " + self.username[i] + " , " + XMPP_PASSWORD_STRING + " : " + self.password[i])
+        for i in range(0,self.num_nodes):
+            # print(XMPP_USER_STRING + " : " + self.username[i] + " , " + XMPP_PASSWORD_STRING + " : " + self.password[i])
             node_config = CONFIG_TEMPLATE_OUT_PRE + int_to_three_char(i+1) + CONFIG_TEMPLATE_OUT_POS
-            print (node_config)
+            # print (node_config)
             # This does a copy from template to node-specific node_config, starting from _node1
             # The config template is a level up in the file system
             if DEBUG_TESTBED == True:
@@ -173,7 +181,8 @@ class ConfigGen():
                 config_template_path = "../" + CONFIG_TEMPLATE
             sed (XMPP_USER_STRING, self.username[i], config_template_path, node_config)
             # Now sed in-place node_config
-            sed (SERVER_NAME_STRING, SERVER_NAME, node_config)
+            sed (SERVER_ADDRESS_STRING, SERVER_ADDRESS, node_config)
+            sed (XMPP_DOMAIN_STRING, XMPP_DOMAIN, node_config)
             sed (XMPP_PASSWORD_STRING, self.password[i], node_config)
             sed (TURN_USER_STRING, self.username[i], node_config)
             sed (TURN_PASSWORD_STRING, self.password[i], node_config)
@@ -190,7 +199,7 @@ class ConfigGen():
         f.close()
         # now append lines
         f = open(self.project_name + OF_SQL_TEMPLATE_OUT_POS, "a")
-        for i in range(0,NUM_ACCOUNTS):
+        for i in range(0,self.num_accounts):
             # get current timestamp in format used by table (miliseconds)
             now = time.time() * 1000
             timestamp = str(round(now))
@@ -198,7 +207,7 @@ class ConfigGen():
             f.write(add_user_str)
         add_group_str = "INSERT INTO ofGroup (groupName) VALUES ('" + self.project_name + "');\n"
         f.write(add_group_str)
-        for i in range(0,NUM_ACCOUNTS):
+        for i in range(0,self.num_accounts):
             add_user_to_group_str = "INSERT INTO ofGroupUser (groupName, username, administrator) VALUES ('" + self.project_name + "', '" + self.username_unique[i] + "', 0);\n"
             f.write(add_user_to_group_str)
         add_group_prop_str = "INSERT INTO ofGroupProp (groupName, name, propValue) VALUES ('" + self.project_name + "', 'sharedRoster.displayName', '" + self.project_name + "');\n"
@@ -231,7 +240,7 @@ class ConfigGen():
         f = open(self.project_name + TURNADMIN_TEMPLATE_OUT_POS, "a")
         bash_str = "#!/bin/sh\n\n"
         f.write(bash_str)
-        for i in range(0,NUM_ACCOUNTS):
+        for i in range(0,self.num_accounts):
             add_turn_user_str = "turnadmin --mysql-userdb \"host=" + MYSQL_IP + " dbname=" + MYSQL_TURN_DB + " user=" + MYSQL_USER + " password=" + self.mysql_password +" connect_timeout=30 read_timeout=30\" -a -r " + TURN_REALM + " -u " + self.username_unique[i] + " -p " + self.password_unique[i] +"\n"
             f.write(add_turn_user_str)
         f.close()
@@ -277,23 +286,85 @@ class ConfigGen():
 
 if __name__ == "__main__":
 
-    if len(sys.argv) != 6:
-        print("Usage: " + sys.argv[0] + " mysql_password requestor_email project_name base_IP Overlay_ID\n")
-        print("Example: " + sys.argv[0] + " afdhu83k person@site.com Eviotest 10.10.100 101000F\n")
-    else:
-        path = sys.argv[3]
-        try:
-            os.mkdir(path)
-        except OSError:
-            print ("Creation of the directory %s failed" % path)
-            exit()
-        else:
-            print ("Output files will be stored in the directory %s " % path)
-            os.chdir(path)
-        myConfigGen = ConfigGen(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5])
-        myConfigGen.WriteJson()
-        myConfigGen.WriteOfSQL()
-        myConfigGen.WriteTurnadmin()
-        myConfigGen.WriteOfSQLScript()
-        myConfigGen.WriteDockerScripts()
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--sqlpass', required=True, help='Password for MySQL root user', type=ascii)
+    parser.add_argument('--email', required=True, help='Email associated with users to be created in MySQL database', type=ascii)
+    parser.add_argument('--evioname', required=True, help='Name of the Evio network - limited to 7 characters: lower/uppercase letters, numbers, and special character _, e.g. ProjX_1', type=ascii)
+    parser.add_argument('--baseip', required=True, help='Base IP address range, e.g. 10.10.100', type=ascii)
+    parser.add_argument('--numnodes', required=True, help='Number of nodes to be created - maximum of 250', type=int)
+    parser.add_argument('--numacct', required=True, help='Number of XMPP/TURN accounts to be created - must divide numnodes', type=int)
+
+    args = parser.parse_args()
+    argdict = vars(args)
+
+    evioname = argdict['evioname']
+    evioname_clean = evioname[1:len(evioname)-1]
+
+    if len(evioname_clean) > 7:
+        print('--evioname longer than 7 characters')
+        exit()
+
+    if argdict['numacct'] > argdict['numnodes']:
+        print('--numacct cannot be greater than --numnodes')
+        exit()
+
+    if argdict['numnodes'] > 250:
+        print('--numnodes cannot be greater than 250')
+        exit()
+
+    if argdict['numnodes'] % argdict['numacct']:
+        print('--numacct must divide --numnodes')
+        exit()
+
+    baseip = argdict['baseip']
+    baseip_clean = baseip[1:len(baseip)-1]
+
+    ip_split = baseip_clean.split('.')
+    first_byte = ip_split[0]
+    second_byte = ip_split[1]
+    third_byte = ip_split[2]
+
+    if len(ip_split) != 3:
+        print('--baseip should be top 3 bytes of base IP address, as in 10.10.100')
+        exit()
+
+    if first_byte not in {"10", "192", "172"}:
+        print('--baseip first byte needs to be a private address: 10, 192, 172')
+        exit()
+
+    if (int(second_byte) < 1) or (int(second_byte) > 254):
+        print('--baseip second byte must be a number between 1 and 254')
+        exit()
+
+    if (int(third_byte) < 1) or (int(third_byte) > 254):
+        print('--baseip third byte must be a number between 1 and 254')
+        exit()
+
+    path = evioname_clean 
+    try:
+        os.mkdir(path)
+    except OSError:
+        print ("Creation of the directory %s failed; aborting" % path)
+        exit()
+
+    sqlpass = argdict['sqlpass']
+    sqlpass_clean = sqlpass[1:len(sqlpass)-1]
+
+    email = argdict['email']
+    email_clean = email[1:len(email)-1]
+
+    print ("Output files will be stored in the directory %s " % path)
+    os.chdir(path)
+    myConfigGen = ConfigGen(sqlpass_clean, email_clean, evioname_clean, baseip_clean, evioname_clean, argdict['numacct'], argdict['numnodes'])
+    myConfigGen.WriteJson()
+    myConfigGen.WriteOfSQL()
+    myConfigGen.WriteTurnadmin()
+    myConfigGen.WriteOfSQLScript()
+    myConfigGen.WriteDockerScripts()
+    print("Configuration files and scripts to configure MySQL have been generated.")
+    print("Before deploying Evio nodes, you must load the new XMPP/TURN accounts into MySQL by running:")
+    print("cd " + path)
+    print("chmod 755 *.sh")
+    print("./docker-config-openfire-turn.sh")
 
