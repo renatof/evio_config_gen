@@ -1,9 +1,9 @@
 #!/bin/bash
 
 # Replace with the password you want for your MySQL server
-MYSQL_ROOT_PASSWORD="feahkj78_4"
+MYSQL_ROOT_PASSWORD="my_sql_root_password"
 # Replace with the AWS instance's public IP address
-AWS_SERVER_IP="54.212.188.82"
+AWS_SERVER_IP="AWS_SERVER_IP"
 
 echo "Setting up Evio bootstrapping node with XMPP, TURN, and MySQL containers"
 
