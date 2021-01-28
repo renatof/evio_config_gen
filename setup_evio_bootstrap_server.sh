@@ -94,7 +94,8 @@ echo "max-port=59200" >> turnserver.conf
 echo "lt-cred-mech" >> turnserver.conf
 echo "mysql-userdb=\"host=172.17.0.2 dbname=turnserver user=root password=$MYSQL_ROOT_PASSWORD connect_timeout=30 read_timeout=30\"" >> turnserver.conf
 
-sudo docker run -d --network=host --name evio-coturn -v /home/ubuntu/coturn/turnserver.conf:/etc/coturn/turnserver.conf instrumentisto/coturn -c /etc/coturn/turnserver.conf
+sudo docker pull instrumentisto/coturn:4.5.1
+sudo docker run -d --network=host --name evio-coturn -v /home/ubuntu/coturn/turnserver.conf:/etc/coturn/turnserver.conf instrumentisto/coturn:4.5.1 -c /etc/coturn/turnserver.conf
 
 echo "Waiting for coturn container..."
 sleep 30
