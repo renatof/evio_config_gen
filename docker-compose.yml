@@ -1,0 +1,37 @@
+version: '3.5'
+services:
+  db:
+    image: mysql
+    container_name: evio-mysql
+    restart: on-failure
+    environment:
+      - MYSQL_USER=root
+      - MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD
+    volumes:
+      - evio-mysql:/var/lib/mysql
+
+  evio-openfire:
+    image: quantumobject/docker-openfire
+    container_name: evio-openfire
+    restart: on-failure
+    ports:
+      - '9091:9091'
+      - '9090:9090'
+      - '5222:5222'
+      - '5269:5269'
+      - '5223:5223'
+      - '7443:7443'
+      - '7777:7777'
+      - '7070:7070'
+      - '5229:5229'
+      - '5275:5275'
+
+  evio-coturn:
+    image: instrumentisto/coturn:4.5.1
+    container_name: evio-coturn
+    restart: on-failure
+    volumes:
+      - ./coturn/turnserver.conf:/etc/coturn/turnserver.conf
+
+volumes:
+  evio-mysql: {}
