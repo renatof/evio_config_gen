@@ -32,6 +32,11 @@ services:
     restart: on-failure
     volumes:
       - ./coturn/turnserver.conf:/etc/coturn/turnserver.conf
+    ports:
+      - '3478:3478'
+      - '3478:3478/udp'
+      - '49160-59200:49160-59200/udp'
+    network_mode: host
 
 volumes:
   evio-mysql: {}
