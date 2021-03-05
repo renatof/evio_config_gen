@@ -65,6 +65,12 @@ sudo docker cp evio-coturn:/usr/share/turnserver/schema.sql turnserver.sql
 sudo docker cp turnserver.sql evio-mysql:/turnserver.sql
 sudo docker exec -it evio-mysql mysql -u root --password=$MYSQL_ROOT_PASSWORD turnserver -e "source /turnserver.sql"
 
+echo "Setting up db name in coturn's /etc/hosts..."
+MYSQL_IP=`docker inspect evio-mysql|grep IPAddress|tail -1|awk '{print $2}'|sed 's/,//'|sed 's/"//'|sed 's/"//'`
+echo "$MYSQL_IP db" > coturn-hosts
+sudo docker cp coturn-hosts evio-coturn:/tmp/coturn-hosts
+sudo docker exec -it evio-coturn sh -c 'cat /tmp/coturn-hosts >> /etc/hosts'
+
 echo "Now you need to perform the initial setup of Openfire server"
 echo "------------------------------------------------------------"
 echo "Insecure method: Cleartext http over the Internet! Use at your own risk:"
