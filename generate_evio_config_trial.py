@@ -26,7 +26,7 @@ RANDOM_STRING_LENGTH = 16
 # Name of MySQL user
 MYSQL_USER = 'root'
 # IP address of MySQL server
-MYSQL_IP = 'db'
+MYSQL_IP = 'EVIODB_DOCKER_NET.2'
 # Name of turn and openfire MySQL databases
 MYSQL_TURN_DB = 'turnserver'
 MYSQL_OPENFIRE_DB = 'openfire'

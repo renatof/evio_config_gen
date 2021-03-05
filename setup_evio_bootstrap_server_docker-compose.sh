@@ -4,6 +4,8 @@
 MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD
 # Replace with the AWS instance's public IP address
 AWS_SERVER_IP=$AWS_SERVER_IP
+# Replace with the base IP address for docker network subnet
+EVIODB_DOCKER_NET=$EVIODB_DOCKER_NET
 
 echo "Setting up Evio bootstrapping node with XMPP, TURN, and MySQL containers"
 
@@ -39,9 +41,21 @@ echo "listening-port=3478" >> turnserver.conf
 echo "min-port=49160" >> turnserver.conf
 echo "max-port=59200" >> turnserver.conf
 echo "lt-cred-mech" >> turnserver.conf
-echo "mysql-userdb=\"host=db dbname=turnserver user=root password=$MYSQL_ROOT_PASSWORD connect_timeout=300 read_timeout=30\"" >> turnserver.conf
+echo "mysql-userdb=\"host=$EVIODB_DOCKER_NET.2 dbname=turnserver user=root password=$MYSQL_ROOT_PASSWORD connect_timeout=300 read_timeout=30\"" >> turnserver.conf
 
 cd ./..
+
+echo "Setting up EVIODB_DOCKER_NET in docker-compose.yml..."
+
+sed -i "s/EVIODB_DOCKER_NET/$EVIODB_DOCKER_NET/" docker-compose.yml
+
+echo "Setting up MySQL IP address in generate_evio_config_trial.py..."
+
+sed -i "s/EVIODB_DOCKER_NET/$EVIODB_DOCKER_NET/" generate_evio_config_trial.py
+
+echo "Setting up /etc/openfire volume..."
+
+sudo tar --same-owner -xf openfire.tar 
 
 echo "Starting Coturn, Mysql and Openfire..."
 
@@ -64,12 +78,6 @@ echo "Setting up TURN server schema for MySQL..."
 sudo docker cp evio-coturn:/usr/share/turnserver/schema.sql turnserver.sql 
 sudo docker cp turnserver.sql evio-mysql:/turnserver.sql
 sudo docker exec -it evio-mysql mysql -u root --password=$MYSQL_ROOT_PASSWORD turnserver -e "source /turnserver.sql"
-
-echo "Setting up db name in coturn's /etc/hosts..."
-MYSQL_IP=`docker inspect evio-mysql|grep IPAddress|tail -1|awk '{print $2}'|sed 's/,//'|sed 's/"//'|sed 's/"//'`
-echo "$MYSQL_IP db" > coturn-hosts
-sudo docker cp coturn-hosts evio-coturn:/tmp/coturn-hosts
-sudo docker exec -it evio-coturn sh -c 'cat /tmp/coturn-hosts >> /etc/hosts'
 
 echo "Now you need to perform the initial setup of Openfire server"
 echo "------------------------------------------------------------"
