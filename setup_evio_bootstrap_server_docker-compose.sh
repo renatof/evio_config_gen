@@ -39,7 +39,7 @@ echo "listening-port=3478" >> turnserver.conf
 echo "min-port=49160" >> turnserver.conf
 echo "max-port=59200" >> turnserver.conf
 echo "lt-cred-mech" >> turnserver.conf
-echo "mysql-userdb=\"host=db dbname=turnserver user=root password=$MYSQL_ROOT_PASSWORD connect_timeout=300 read_timeout=30\"" >> turnserver.conf
+echo "mysql-userdb=\"host=$AWS_SERVER_IP dbname=turnserver user=root password=$MYSQL_ROOT_PASSWORD connect_timeout=300 read_timeout=30\"" >> turnserver.conf
 
 cd ./..
 
@@ -83,7 +83,7 @@ echo "Click Continue"
 echo "Select "Standard database connection" (which is not the default option), click Continue"
 echo "In "Pick Database": select MySQL from drop down"
 echo "replace Database URL with the following string to connect to your other container:"
-echo "  jdbc:mysql://db:3306/openfire"
+echo "  jdbc:mysql://$AWS_SERVER_IP:3306/openfire"
 echo "set username: root"
 echo "set password: $MYSQL_ROOT_PASSWORD"
 echo "Profile settings: Default"
