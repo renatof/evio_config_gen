@@ -9,9 +9,6 @@ services:
       - MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD
     volumes:
       - evio-mysql:/var/lib/mysql
-    networks:
-      eviodb:
-        ipv4_address: EVIODB_DOCKER_NET.2
 
   evio-openfire:
     image: quantumobject/docker-openfire
@@ -28,11 +25,6 @@ services:
       - '7070:7070'
       - '5229:5229'
       - '5275:5275'
-    volumes:
-      - ./openfire:/etc/openfire
-    networks:
-      eviodb:
-        ipv4_address: EVIODB_DOCKER_NET.3
 
   evio-coturn:
     image: instrumentisto/coturn:4.5.1
@@ -40,16 +32,11 @@ services:
     restart: on-failure
     volumes:
       - ./coturn/turnserver.conf:/etc/coturn/turnserver.conf
+    ports:
+      - '3478:3478'
+      - '3478:3478/udp'
+      - '49160-59200:49160-59200/udp'
     network_mode: host
 
 volumes:
   evio-mysql: {}
-
-networks:
-  eviodb: 
-    driver: bridge
-    ipam:
-      driver: default
-      config:
-        - subnet: EVIODB_DOCKER_NET.0/24
-
