@@ -9,6 +9,9 @@ services:
       - MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD
     volumes:
       - evio-mysql:/var/lib/mysql
+    network_mode: host
+    ports:
+      - '3306:3306'
 
   evio-openfire:
     image: quantumobject/docker-openfire
@@ -25,6 +28,9 @@ services:
       - '7070:7070'
       - '5229:5229'
       - '5275:5275'
+    network_mode: host
+    volumes:
+      - evio-openfire:/etc/openfire
 
   evio-coturn:
     image: instrumentisto/coturn:4.5.1
@@ -40,3 +46,4 @@ services:
 
 volumes:
   evio-mysql: {}
+  evio-openfire: {}
