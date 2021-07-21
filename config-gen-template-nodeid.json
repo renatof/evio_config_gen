@@ -77,7 +77,7 @@
       "LogDir": "/var/log/evio/",
       "LogFilename": "bf.log",
       "LogLevel": "DEBUG",
-      "BridgeName": "edgbr",
+      "BridgeName": "edgbrOVERLAY_ID",
       "DemandThreshold": "100M",
       "FlowIdleTimeout": 60,
       "FlowHardTimeout": 60,
