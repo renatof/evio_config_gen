@@ -25,8 +25,10 @@ XMPP_DOMAIN = 'trial.edgevpn.io'
 RANDOM_STRING_LENGTH = 16
 # Name of MySQL user
 MYSQL_USER = 'root'
+#
 # IP address of MySQL server
-MYSQL_IP = 'db'
+# AWS_SERVER_IP will be used and will be fetched from Environment Variable
+#
 # Name of turn and openfire MySQL databases
 MYSQL_TURN_DB = 'turnserver'
 MYSQL_OPENFIRE_DB = 'openfire'
@@ -241,7 +243,7 @@ class ConfigGen():
         bash_str = "#!/bin/sh\n\n"
         f.write(bash_str)
         for i in range(0,self.num_accounts):
-            add_turn_user_str = "turnadmin --mysql-userdb \"host=" + MYSQL_IP + " dbname=" + MYSQL_TURN_DB + " user=" + MYSQL_USER + " password=" + self.mysql_password +" connect_timeout=30 read_timeout=30\" -a -r " + TURN_REALM + " -u " + self.username_unique[i] + " -p " + self.password_unique[i] +"\n"
+            add_turn_user_str = "turnadmin --mysql-userdb \"host=" + os.environ['AWS_SERVER_IP'] + " dbname=" + MYSQL_TURN_DB + " user=" + MYSQL_USER + " password=" + self.mysql_password +" connect_timeout=30 read_timeout=30\" -a -r " + TURN_REALM + " -u " + self.username_unique[i] + " -p " + self.password_unique[i] +"\n"
             f.write(add_turn_user_str)
         f.close()
 
