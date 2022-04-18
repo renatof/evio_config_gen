@@ -72,7 +72,6 @@
       "LinkManager"
     ],
     "BoundedFlood": {
-      "OverlayId": "OVERLAY_ID",
       "LogDir": "/var/log/evio/",
       "LogFilename": "bf.log",
       "LogLevel": "INFO",
@@ -85,8 +84,14 @@
       "BackupCount": 0,
       "ProxyListenAddress": "",
       "ProxyListenPort": 5802,
-      "MonitorInterval": 60,
-      "MaxOnDemandEdges": 0
+      "Overlays": {
+        "OVERLAY_ID": {
+          "DemandThreshold": "10M",
+          "FlowIdleTimeout": 60,
+          "FlowHardTimeout": 60,
+          "MaxOnDemandEdges": 3
+        }
+      }
     },
     "Overlays": {
       "OVERLAY_ID": {
